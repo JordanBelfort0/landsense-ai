@@ -5,7 +5,7 @@ import { compatibility } from '@/lib/scoring/compatibility';
 import { CATEGORIES, CATEGORY_LABELS } from '@/lib/types';
 
 export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLandStore> }) {
-  const { visible, ranked, selectedId, setSelectedId, persona } = store;
+  const { ranked, selectedId, setSelectedId, persona } = store;
   const parcel = ranked.find((p) => p.id === selectedId);
   if (!parcel) return null;
 
