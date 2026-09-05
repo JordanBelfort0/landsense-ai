@@ -1,43 +1,58 @@
-html, body { margin: 0; padding: 0; }
-* { box-sizing: border-box; }
+/* ============================================================================
+   LandSense AI — "Survey instrument" design system
+   A graphite cartographic control panel framing a light land map.
+   Signature: compatibility rendered as terrain elevation (see app/lib/scale.ts).
+   ========================================================================== */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Ink panel — frames the light map */
+  --ink: #12161b;
+  --ink-2: #191f27;
+  --ink-3: #212934;
+  --line: rgba(233, 238, 245, 0.09);
+  --line-strong: rgba(233, 238, 245, 0.16);
+
+  /* Text */
+  --text: #eef1f5;
+  --text-dim: #9aa4b2;
+  --text-faint: #6b7482;
+
+  /* Signature accent — contour gold (peak / active / selected) */
+  --gold: #d8a24a;
+  --gold-soft: rgba(216, 162, 74, 0.14);
+  --gold-line: rgba(216, 162, 74, 0.4);
+
+  /* Semantic */
+  --pos: #6fae74;
+  --neg: #d07a6b;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --font-display: var(--font-display), "Segoe UI", sans-serif;
+  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
 body {
+  height: 100%;
   max-width: 100vw;
   overflow-x: hidden;
 }
 
 body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--ink);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
@@ -45,8 +60,639 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- App shell ---------------------------------------------------------- */
+.ls-shell {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.ls-map-pane {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- Rail --------------------------------------------------------------- */
+.ls-rail {
+  background: var(--ink);
+  border-right: 1px solid var(--line);
+  height: 100%;
+  overflow-y: auto;
+  padding: 22px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* Header with a faint contour-line texture */
+.ls-brand {
+  position: relative;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.ls-brand::before {
+  content: "";
+  position: absolute;
+  inset: -22px -20px 0;
+  background-image: repeating-radial-gradient(
+    circle at 82% -10%,
+    transparent 0 17px,
+    var(--line) 17px 18px
+  );
+  opacity: 0.7;
+  pointer-events: none;
+  mask-image: linear-gradient(180deg, #000, transparent 92%);
+}
+.ls-wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.ls-wordmark .sense {
+  color: var(--gold);
+}
+.ls-tagline {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.ls-section-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ls-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Persona selector */
+.ls-persona-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.ls-persona {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  padding: 11px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--ink-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.ls-persona:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: var(--ink-3);
+}
+.ls-persona[aria-pressed="true"] {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+/* Priorities readout for the active persona */
+.ls-priorities {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ls-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.ls-chip b {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Controls */
+.ls-control + .ls-control {
+  margin-top: 22px;
+}
+.ls-control-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.ls-control-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--gold);
+}
+.ls-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--ink-3);
+  outline: none;
+}
+.ls-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.ls-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.ls-select {
+  width: 100%;
+  padding: 9px 11px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--ink-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+/* Leaderboard */
+.ls-board {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ls-board-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--ink-2);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+}
+.ls-board-row:hover {
+  border-color: var(--line-strong);
+  background: var(--ink-3);
+}
+.ls-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ls-board-id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.ls-board-use {
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: capitalize;
+}
+.ls-board-score {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ls-board-score span {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+/* ---- Map overlays ------------------------------------------------------- */
+.ls-map {
+  height: 100%;
+  width: 100%;
+}
+.ls-overlay-pill {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 13px;
+  background: rgba(18, 22, 27, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text);
+}
+.ls-overlay-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+.ls-overlay-pill .muted {
+  color: var(--text-faint);
+}
+
+.ls-legend {
+  position: absolute;
+  bottom: 18px;
+  left: 16px;
+  z-index: 500;
+  padding: 11px 13px;
+  background: rgba(18, 22, 27, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  width: 176px;
+}
+.ls-legend-title {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 7px;
+}
+.ls-legend-ramp {
+  height: 7px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    #33475a,
+    #2f7372,
+    #5e945f,
+    #c09240,
+    #e7b84b
+  );
+}
+.ls-legend-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-faint);
+  margin-top: 5px;
+}
+
+/* Selected marker halo (applied to a Leaflet CircleMarker path) */
+.ls-marker-selected {
+  filter: drop-shadow(0 0 5px rgba(216, 162, 74, 0.9));
+}
+
+/* ---- Drawer ------------------------------------------------------------- */
+.ls-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 372px;
+  max-width: 100%;
+  height: 100%;
+  background: var(--ink);
+  border-left: 1px solid var(--line-strong);
+  box-shadow: -18px 0 46px rgba(0, 0, 0, 0.4);
+  padding: 20px 22px 32px;
+  overflow-y: auto;
+  z-index: 1200;
+  animation: ls-slide 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes ls-slide {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.ls-drawer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.ls-drawer-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.ls-drawer-coords {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+.ls-close {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  background: var(--ink-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.ls-close:hover {
+  color: var(--text);
+  background: var(--ink-3);
+}
+
+.ls-match {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+.ls-match-num {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: -0.03em;
+}
+.ls-match-unit {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* Confidence meter */
+.ls-conf {
+  margin: 14px 0 20px;
+}
+.ls-conf-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.ls-conf-track {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--ink-3);
+  overflow: hidden;
+}
+.ls-conf-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gold);
+}
+
+/* Facts block */
+.ls-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.ls-fact {
+  background: var(--ink-2);
+  padding: 11px 12px;
+}
+.ls-fact-k {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.ls-fact-v {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text);
+  margin-top: 3px;
+}
+
+.ls-valuation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  margin-bottom: 22px;
+}
+.ls-valuation.under {
+  background: rgba(111, 174, 116, 0.13);
+  color: var(--pos);
+  border: 1px solid rgba(111, 174, 116, 0.3);
+}
+.ls-valuation.over {
+  background: rgba(208, 122, 107, 0.13);
+  color: var(--neg);
+  border: 1px solid rgba(208, 122, 107, 0.3);
+}
+.ls-valuation.fair {
+  background: var(--ink-2);
+  color: var(--text-dim);
+  border: 1px solid var(--line-strong);
+}
+.ls-valuation .gap {
+  margin-left: auto;
+  font-family: var(--font-mono);
+}
+
+.ls-sub {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+/* Amenity bars */
+.ls-amenity {
+  margin-bottom: 11px;
+}
+.ls-amenity-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+.ls-amenity-head .val {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.ls-bar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ink-3);
+  overflow: hidden;
+}
+.ls-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* Explainability rows */
+.ls-why {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ls-why-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+}
+.ls-why-row:last-child {
+  border-bottom: none;
+}
+.ls-why-points {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  text-align: right;
+}
+.ls-why-points.pos {
+  color: var(--pos);
+}
+.ls-why-points.neg {
+  color: var(--neg);
+}
+.ls-why-label {
+  color: var(--text);
+}
+.ls-why-score {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.ls-disclaimer {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-faint);
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---- Leaflet dark-theme overrides -------------------------------------- */
+.leaflet-container {
+  background: #e8e6df;
+  font-family: var(--font-mono);
+}
+.leaflet-bar a {
+  background: var(--ink-2);
+  color: var(--text);
+  border-bottom-color: var(--line);
+}
+.leaflet-bar a:hover {
+  background: var(--ink-3);
+}
+.leaflet-control-attribution {
+  background: rgba(18, 22, 27, 0.75) !important;
+  color: var(--text-faint) !important;
+  font-size: 9.5px;
+}
+.leaflet-control-attribution a {
+  color: var(--text-dim) !important;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+@media (max-width: 860px) {
+  .ls-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto;
+    min-height: 100dvh;
+  }
+  .ls-rail {
+    height: auto;
+    max-height: 46dvh;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .ls-map-pane {
+    min-height: 54dvh;
+  }
+  .ls-drawer {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-drawer {
+    animation: none;
+  }
+  * {
+    transition: none !important;
   }
 }

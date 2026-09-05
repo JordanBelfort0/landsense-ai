@@ -1,55 +1,121 @@
 'use client';
 import { useLandStore } from '@/app/lib/useLandStore';
+import { CATEGORIES, CATEGORY_LABELS } from '@/lib/types';
+import { elevationColor } from '@/app/lib/scale';
+
+const LAND_USES = ['all', 'residential', 'commercial', 'mixed', 'industrial'] as const;
 
 export default function PersonaRail({ store }: { store: ReturnType<typeof useLandStore> }) {
   const {
-    personas, personaId, setPersonaId, budget, setBudget, maxPrice,
-    landUse, setLandUse, visible, setSelectedId,
+    personas, persona, personaId, setPersonaId, budget, setBudget, maxPrice,
+    landUse, setLandUse, visible, selectedId, setSelectedId,
   } = store;
 
+  // The three categories this persona weights most heavily — its priorities.
+  const priorities = [...CATEGORIES]
+    .sort((a, b) => persona.weights[b] - persona.weights[a])
+    .slice(0, 3);
+
   return (
-    <aside style={{ padding: 16, overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
-      <h1 style={{ fontSize: 18, marginBottom: 4 }}>LandSense AI</h1>
-      <p style={{ fontSize: 12, color: '#666', marginTop: 0 }}>Bengaluru · {visible.length} parcels</p>
+    <aside className="ls-rail">
+      <header className="ls-brand">
+        <div className="ls-wordmark">
+          Land<span className="sense">Sense</span>
+        </div>
+        <div className="ls-tagline">Land decision intelligence · Bengaluru</div>
+      </header>
 
-      <h2 style={{ fontSize: 13, textTransform: 'uppercase', color: '#888' }}>I am a…</h2>
-      <div style={{ display: 'grid', gap: 6 }}>
-        {personas.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => setPersonaId(p.id)}
-            style={{
-              padding: '8px 10px', textAlign: 'left', cursor: 'pointer',
-              border: '1px solid #ddd', borderRadius: 8,
-              background: p.id === personaId ? '#111' : '#fff',
-              color: p.id === personaId ? '#fff' : '#111',
-            }}
-          >{p.label}</button>
-        ))}
-      </div>
+      <section>
+        <div className="ls-section-label">Who are you</div>
+        <div className="ls-persona-grid">
+          {personas.map((p) => (
+            <button
+              key={p.id}
+              className="ls-persona"
+              aria-pressed={p.id === personaId}
+              onClick={() => setPersonaId(p.id)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <div className="ls-priorities">
+          {priorities.map((c) => (
+            <span key={c} className="ls-chip">
+              {CATEGORY_LABELS[c]} <b>{Math.round(persona.weights[c] * 100)}%</b>
+            </span>
+          ))}
+        </div>
+      </section>
 
-      <h2 style={{ fontSize: 13, textTransform: 'uppercase', color: '#888', marginTop: 20 }}>Budget (₹/sq.ft)</h2>
-      <input
-        type="range" min={1000} max={maxPrice} value={budget}
-        onChange={(e) => setBudget(Number(e.target.value))} style={{ width: '100%' }}
-      />
-      <div style={{ fontSize: 12 }}>≤ ₹{budget.toLocaleString('en-IN')}</div>
+      <section>
+        <div className="ls-section-label">Filters</div>
 
-      <h2 style={{ fontSize: 13, textTransform: 'uppercase', color: '#888', marginTop: 20 }}>Land use</h2>
-      <select value={landUse} onChange={(e) => setLandUse(e.target.value as typeof landUse)} style={{ width: '100%', padding: 6 }}>
-        {['all', 'residential', 'commercial', 'mixed', 'industrial'].map((u) => (
-          <option key={u} value={u}>{u}</option>
-        ))}
-      </select>
+        <div className="ls-control">
+          <div className="ls-control-head">
+            <span className="ls-sub" style={{ margin: 0 }}>Max price</span>
+            <span className="ls-control-value">₹{budget.toLocaleString('en-IN')}/sq.ft</span>
+          </div>
+          <input
+            className="ls-range"
+            type="range"
+            min={1000}
+            max={maxPrice}
+            value={budget}
+            aria-label="Maximum price per square foot"
+            onChange={(e) => setBudget(Number(e.target.value))}
+          />
+        </div>
 
-      <h2 style={{ fontSize: 13, textTransform: 'uppercase', color: '#888', marginTop: 20 }}>Best matches</h2>
-      <ol style={{ paddingLeft: 18, fontSize: 13 }}>
-        {visible.slice(0, 5).map((p) => (
-          <li key={p.id} style={{ marginBottom: 4, cursor: 'pointer' }} onClick={() => setSelectedId(p.id)}>
-            {p.id} — {Math.round(p.compat)}%
-          </li>
-        ))}
-      </ol>
+        <div className="ls-control">
+          <div className="ls-control-head">
+            <span className="ls-sub" style={{ margin: 0 }}>Land use</span>
+          </div>
+          <select
+            className="ls-select"
+            value={landUse}
+            aria-label="Land use"
+            onChange={(e) => setLandUse(e.target.value as typeof landUse)}
+          >
+            {LAND_USES.map((u) => (
+              <option key={u} value={u}>{u === 'all' ? 'Any use' : u}</option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      <section>
+        <div className="ls-section-label">Top matches · {visible.length} parcels</div>
+        <ol className="ls-board">
+          {visible.slice(0, 6).map((p, i) => (
+            <li key={p.id}>
+              <button
+                className="ls-board-row"
+                aria-pressed={p.id === selectedId}
+                style={p.id === selectedId ? { borderColor: 'var(--gold-line)' } : undefined}
+                onClick={() => setSelectedId(p.id)}
+              >
+                <span className="ls-rank" style={{ background: elevationColor(p.compat) }}>
+                  {i + 1}
+                </span>
+                <span>
+                  <span className="ls-board-id">{p.id}</span>
+                  <br />
+                  <span className="ls-board-use">{p.landUse}</span>
+                </span>
+                <span className="ls-board-score">
+                  {Math.round(p.compat)}<span>/100</span>
+                </span>
+              </button>
+            </li>
+          ))}
+          {visible.length === 0 && (
+            <li className="ls-board-use" style={{ padding: '8px 2px' }}>
+              No parcels fit these filters. Raise the price ceiling or widen the land use.
+            </li>
+          )}
+        </ol>
+      </section>
     </aside>
   );
 }

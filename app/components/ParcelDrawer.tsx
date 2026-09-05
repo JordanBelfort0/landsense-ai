@@ -3,6 +3,7 @@ import { useLandStore } from '@/app/lib/useLandStore';
 import { explain } from '@/lib/scoring/explain';
 import { compatibility } from '@/lib/scoring/compatibility';
 import { CATEGORIES, CATEGORY_LABELS } from '@/lib/types';
+import { elevationColor } from '@/app/lib/scale';
 
 export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLandStore> }) {
   const { ranked, selectedId, setSelectedId, persona } = store;
@@ -12,45 +13,102 @@ export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLa
   const compat = compatibility(parcel.scores, persona);
   const items = explain(parcel.scores, persona);
   const gap = (parcel.listedPrice - parcel.estimatedValue) / parcel.estimatedValue;
-  const flag = gap < -0.08 ? 'Potentially Undervalued' : gap > 0.08 ? 'Potentially Overpriced' : 'Fairly Priced';
+  const valuation =
+    gap < -0.08
+      ? { cls: 'under', label: 'Potentially undervalued' }
+      : gap > 0.08
+        ? { cls: 'over', label: 'Potentially overpriced' }
+        : { cls: 'fair', label: 'Fairly priced' };
 
   return (
-    <div style={{
-      position: 'absolute', top: 0, right: 0, width: 340, height: '100%',
-      background: '#fff', boxShadow: '-2px 0 12px rgba(0,0,0,0.12)', padding: 16,
-      overflowY: 'auto', zIndex: 1000, boxSizing: 'border-box',
-    }}>
-      <button onClick={() => setSelectedId(null)} style={{ float: 'right', cursor: 'pointer' }}>✕</button>
-      <h2 style={{ marginTop: 0 }}>{parcel.id}</h2>
-      <div style={{ fontSize: 28, fontWeight: 700 }}>{Math.round(compat)}<span style={{ fontSize: 14 }}>/100 match</span></div>
-      <div style={{ fontSize: 12, color: '#666' }}>Confidence: {parcel.confidence}%</div>
-
-      <p style={{ fontSize: 13 }}>
-        {parcel.area.toLocaleString('en-IN')} sq.ft · {parcel.landUse}<br />
-        Listed ₹{parcel.listedPrice.toLocaleString('en-IN')}/sq.ft · Est. ₹{parcel.estimatedValue.toLocaleString('en-IN')}<br />
-        <strong>{flag}</strong>
-      </p>
-
-      <h3 style={{ fontSize: 13 }}>Amenity profile</h3>
-      {CATEGORIES.map((c) => (
-        <div key={c} style={{ marginBottom: 6 }}>
-          <div style={{ fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
-            <span>{CATEGORY_LABELS[c]}</span><span>{Math.round(parcel.scores[c])}</span>
+    <div className="ls-drawer" role="dialog" aria-label={`Parcel ${parcel.id} details`}>
+      <div className="ls-drawer-top">
+        <div>
+          <div className="ls-drawer-eyebrow">{parcel.id} · {persona.label}</div>
+          <div className="ls-drawer-coords">
+            {parcel.lat.toFixed(4)}, {parcel.lng.toFixed(4)}
           </div>
-          <div style={{ background: '#eee', height: 6, borderRadius: 3 }}>
-            <div style={{ width: `${parcel.scores[c]}%`, height: 6, borderRadius: 3, background: '#2b7' }} />
+        </div>
+        <button className="ls-close" onClick={() => setSelectedId(null)} aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <div className="ls-match">
+        <span className="ls-match-num">{Math.round(compat)}</span>
+        <span className="ls-match-unit">/ 100 match</span>
+      </div>
+
+      <div className="ls-conf">
+        <div className="ls-conf-head">
+          <span>Confidence</span>
+          <span>{parcel.confidence}%</span>
+        </div>
+        <div className="ls-conf-track">
+          <div className="ls-conf-fill" style={{ width: `${parcel.confidence}%` }} />
+        </div>
+      </div>
+
+      <div className="ls-facts">
+        <div className="ls-fact">
+          <div className="ls-fact-k">Area</div>
+          <div className="ls-fact-v">{parcel.area.toLocaleString('en-IN')} sq.ft</div>
+        </div>
+        <div className="ls-fact">
+          <div className="ls-fact-k">Land use</div>
+          <div className="ls-fact-v" style={{ textTransform: 'capitalize' }}>{parcel.landUse}</div>
+        </div>
+        <div className="ls-fact">
+          <div className="ls-fact-k">Listed</div>
+          <div className="ls-fact-v">₹{parcel.listedPrice.toLocaleString('en-IN')}</div>
+        </div>
+        <div className="ls-fact">
+          <div className="ls-fact-k">Est. value</div>
+          <div className="ls-fact-v">₹{parcel.estimatedValue.toLocaleString('en-IN')}</div>
+        </div>
+      </div>
+
+      <div className={`ls-valuation ${valuation.cls}`}>
+        {valuation.label}
+        <span className="gap">{gap >= 0 ? '+' : ''}{Math.round(gap * 100)}%</span>
+      </div>
+
+      <div className="ls-sub">Amenity profile</div>
+      {CATEGORIES.map((c) => (
+        <div key={c} className="ls-amenity">
+          <div className="ls-amenity-head">
+            <span>{CATEGORY_LABELS[c]}</span>
+            <span className="val">{Math.round(parcel.scores[c])}</span>
+          </div>
+          <div className="ls-bar-track">
+            <div
+              className="ls-bar-fill"
+              style={{ width: `${parcel.scores[c]}%`, background: elevationColor(parcel.scores[c]) }}
+            />
           </div>
         </div>
       ))}
 
-      <h3 style={{ fontSize: 13 }}>Why this parcel?</h3>
-      <ul style={{ paddingLeft: 16, fontSize: 13 }}>
-        {items.filter((i) => Math.abs(i.points) >= 0.5).slice(0, 6).map((i) => (
-          <li key={i.category} style={{ color: i.points >= 0 ? '#178' : '#b33' }}>
-            {i.points >= 0 ? '+' : ''}{i.points.toFixed(0)} — {i.label} ({Math.round(i.score)})
-          </li>
-        ))}
+      <div className="ls-sub" style={{ marginTop: 22 }}>Why this parcel</div>
+      <ul className="ls-why">
+        {items.filter((i) => Math.abs(i.points) >= 0.5).slice(0, 6).map((i) => {
+          const pos = i.points >= 0;
+          return (
+            <li key={i.category} className="ls-why-row">
+              <span className={`ls-why-points ${pos ? 'pos' : 'neg'}`}>
+                {pos ? '+' : ''}{i.points.toFixed(0)}
+              </span>
+              <span className="ls-why-label">{i.label}</span>
+              <span className="ls-why-score">score {Math.round(i.score)}</span>
+            </li>
+          );
+        })}
       </ul>
+
+      <p className="ls-disclaimer">
+        Estimated value is a model figure for guidance, not an official valuation.
+        Confidence reflects how many amenity categories have nearby data.
+      </p>
     </div>
   );
 }

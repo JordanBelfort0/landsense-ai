@@ -9,9 +9,9 @@ const MapView = dynamic(() => import('@/app/components/MapView'), { ssr: false }
 export default function Page() {
   const store = useLandStore();
   return (
-    <main style={{ display: 'grid', gridTemplateColumns: '280px 1fr', height: '100vh' }}>
+    <main className="ls-shell">
       <PersonaRail store={store} />
-      <div style={{ position: 'relative' }}>
+      <div className="ls-map-pane">
         <MapView store={store} />
         <ParcelDrawer store={store} />
       </div>
