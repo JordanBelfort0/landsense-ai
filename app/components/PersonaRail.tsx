@@ -13,10 +13,9 @@ export default function PersonaRail({ store }: { store: ReturnType<typeof useLan
     isCustom, setWeight,
   } = store;
 
-  // The three categories this persona weights most heavily — its priorities.
+  // All 6 categories, ranked by this persona's weight, heaviest first.
   const priorities = [...CATEGORIES]
-    .sort((a, b) => persona.weights[b] - persona.weights[a])
-    .slice(0, 3);
+    .sort((a, b) => persona.weights[b] - persona.weights[a]);
 
   return (
     <aside className="ls-rail">
