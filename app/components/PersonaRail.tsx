@@ -10,6 +10,7 @@ export default function PersonaRail({ store }: { store: ReturnType<typeof useLan
     personas, persona, personaId, setPersonaId, budget, setBudget, maxPrice,
     landUse, setLandUse, visible, selectedId, setSelectedId,
     isComparing, toggleCompare, compareIds, maxCompare,
+    isCustom, setWeight,
   } = store;
 
   // The three categories this persona weights most heavily — its priorities.
@@ -21,19 +22,21 @@ export default function PersonaRail({ store }: { store: ReturnType<typeof useLan
     <aside className="ls-rail">
       <header className="ls-brand">
         <div className="ls-wordmark">
-          Land<span className="sense">Sense</span>
+          Land<span className="match">Match</span>
         </div>
         <div className="ls-tagline">Land decision intelligence · Bengaluru</div>
       </header>
 
       <section>
-        <div className="ls-section-label">Who are you</div>
+        <div className="ls-section-label">
+          Who are you {isCustom && <span className="ls-custom-badge">Custom</span>}
+        </div>
         <div className="ls-persona-grid">
           {personas.map((p) => (
             <button
               key={p.id}
               className="ls-persona"
-              aria-pressed={p.id === personaId}
+              aria-pressed={p.id === personaId && !isCustom}
               onClick={() => setPersonaId(p.id)}
             >
               {p.label}
@@ -47,6 +50,32 @@ export default function PersonaRail({ store }: { store: ReturnType<typeof useLan
             </span>
           ))}
         </div>
+      </section>
+
+      <section>
+        <div className="ls-section-label">
+          Tune weights
+          <span className="ls-sub" style={{ margin: 0, fontWeight: 400 }}>
+            {' '}· starts from {isCustom ? personas.find((p) => p.id === personaId)?.label : persona.label}
+          </span>
+        </div>
+        {CATEGORIES.map((c) => (
+          <div className="ls-control" key={c}>
+            <div className="ls-control-head">
+              <span className="ls-sub" style={{ margin: 0 }}>{CATEGORY_LABELS[c]}</span>
+              <span className="ls-control-value">{Math.round(persona.weights[c] * 100)}%</span>
+            </div>
+            <input
+              className="ls-range"
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(persona.weights[c] * 100)}
+              aria-label={`${CATEGORY_LABELS[c]} weight`}
+              onChange={(e) => setWeight(c, Number(e.target.value) / 100)}
+            />
+          </div>
+        ))}
       </section>
 
       <section>

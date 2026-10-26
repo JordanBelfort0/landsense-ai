@@ -119,7 +119,7 @@ a {
   align-items: baseline;
   gap: 2px;
 }
-.ls-wordmark .sense {
+.ls-wordmark .match {
   color: var(--gold);
 }
 .ls-tagline {
@@ -147,6 +147,18 @@ a {
   flex: 1;
   height: 1px;
   background: var(--line);
+}
+.ls-custom-badge {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold);
+  flex: none;
 }
 
 /* Persona selector */

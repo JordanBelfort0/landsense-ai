@@ -1,16 +1,19 @@
 'use client';
 import { useMemo, useState } from 'react';
 import parcelsData from '@/public/data/parcels.json';
-import { Parcel, Persona } from '@/lib/types';
+import { Parcel, Persona, CategoryScores, Category } from '@/lib/types';
 import { PERSONAS, getPersona } from '@/lib/personas';
 import { compatibility } from '@/lib/scoring/compatibility';
+import { adjustWeight } from '@/lib/scoring/weights';
 
 const PARCELS = parcelsData as Parcel[];
 const MAX_PRICE = Math.max(...PARCELS.map((p) => p.listedPrice));
 const MAX_COMPARE = 3;
 
 export function useLandStore() {
-  const [personaId, setPersonaId] = useState<Persona['id']>('family');
+  const [personaId, setPersonaIdRaw] = useState<Persona['id']>('family');
+  // null = using the preset's own weights untouched; set once a slider moves.
+  const [customWeights, setCustomWeights] = useState<CategoryScores | null>(null);
   const [budget, setBudget] = useState(MAX_PRICE);
   const [landUse, setLandUse] = useState<'all' | Parcel['landUse']>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -34,7 +37,28 @@ export function useLandStore() {
     setCompareOpen(false);
   };
 
-  const persona = getPersona(personaId);
+  // Picking a preset always snaps back to that preset's exact weights —
+  // the 4 archetypes themselves (lib/personas.ts) are never edited.
+  const setPersonaId = (id: Persona['id']) => {
+    setPersonaIdRaw(id);
+    setCustomWeights(null);
+  };
+
+  const basePersona = getPersona(personaId);
+  const isCustom = customWeights !== null;
+  const activeWeights = customWeights ?? basePersona.weights;
+
+  // Dragging a slider moves off the preset into "Custom" — every consumer
+  // (map, drawer, compare) reads this `persona`, so nothing else needs to
+  // know whether its weights came from a preset or from the sliders.
+  // Memoized so `ranked` below doesn't re-sort 300 parcels every render.
+  const persona: Persona = useMemo(
+    () => (isCustom ? { ...basePersona, label: 'Custom', weights: activeWeights } : basePersona),
+    [isCustom, basePersona, activeWeights],
+  );
+
+  const setWeight = (category: Category, value: number) =>
+    setCustomWeights(adjustWeight(activeWeights, category, value));
 
   const ranked = useMemo(
     () =>
@@ -52,10 +76,11 @@ export function useLandStore() {
   );
 
   return {
-    parcels: PARCELS, personas: PERSONAS, persona,
+    parcels: PARCELS, personas: PERSONAS, persona, basePersona,
     personaId, setPersonaId, budget, setBudget, maxPrice: MAX_PRICE,
     landUse, setLandUse, selectedId, setSelectedId, ranked, visible,
     compareIds, isComparing, toggleCompare, clearCompare, maxCompare: MAX_COMPARE,
     compareOpen, setCompareOpen,
+    isCustom, activeWeights, setWeight,
   };
 }
