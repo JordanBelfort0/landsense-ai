@@ -7,12 +7,32 @@ import { compatibility } from '@/lib/scoring/compatibility';
 
 const PARCELS = parcelsData as Parcel[];
 const MAX_PRICE = Math.max(...PARCELS.map((p) => p.listedPrice));
+const MAX_COMPARE = 3;
 
 export function useLandStore() {
   const [personaId, setPersonaId] = useState<Persona['id']>('family');
   const [budget, setBudget] = useState(MAX_PRICE);
   const [landUse, setLandUse] = useState<'all' | Parcel['landUse']>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  const isComparing = (id: string) => compareIds.includes(id);
+
+  // Toggle a parcel in the compare set; adds are capped at MAX_COMPARE.
+  const toggleCompare = (id: string) =>
+    setCompareIds((ids) =>
+      ids.includes(id)
+        ? ids.filter((x) => x !== id)
+        : ids.length >= MAX_COMPARE
+          ? ids
+          : [...ids, id],
+    );
+
+  const clearCompare = () => {
+    setCompareIds([]);
+    setCompareOpen(false);
+  };
 
   const persona = getPersona(personaId);
 
@@ -35,5 +55,7 @@ export function useLandStore() {
     parcels: PARCELS, personas: PERSONAS, persona,
     personaId, setPersonaId, budget, setBudget, maxPrice: MAX_PRICE,
     landUse, setLandUse, selectedId, setSelectedId, ranked, visible,
+    compareIds, isComparing, toggleCompare, clearCompare, maxCompare: MAX_COMPARE,
+    compareOpen, setCompareOpen,
   };
 }

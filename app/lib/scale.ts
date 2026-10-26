@@ -1,15 +1,15 @@
 /**
- * The signature of the design: compatibility read as terrain elevation.
- * A single ramp — deep slate-teal lowland → moss → ochre → summit gold —
- * drives every score surface (map markers, amenity bars, rank markers) so a
- * high score literally reads as "high ground." Colorblind-safer than red→green.
+ * Compatibility read as a fitness signal: a traffic-light ramp where a high
+ * score reads as "good" the way people already expect — red poor → amber →
+ * yellow → green peak. One ramp drives every score surface (map markers,
+ * amenity bars, rank markers) so green consistently means best fit.
  */
 const RAMP: Array<[number, [number, number, number]]> = [
-  [0.0, [0x33, 0x47, 0x5a]], // lowland slate
-  [0.3, [0x2f, 0x73, 0x72]], // teal
-  [0.55, [0x5e, 0x94, 0x5f]], // moss
-  [0.8, [0xc0, 0x92, 0x40]], // ochre
-  [1.0, [0xe7, 0xb8, 0x4b]], // summit gold
+  [0.0, [0xc0, 0x50, 0x3a]], // poor — red
+  [0.3, [0xce, 0x8a, 0x34]], // amber
+  [0.55, [0xc9, 0xb2, 0x3c]], // yellow
+  [0.78, [0x8f, 0xa8, 0x47]], // yellow-green
+  [1.0, [0x3e, 0x8e, 0x4f]], // peak — green
 ];
 
 function lerp(a: number, b: number, t: number): number {
@@ -45,5 +45,5 @@ export function elevationStroke(v: number): string {
       )}, ${Math.round(lerp(c0[2], c1[2], k) * shade)})`;
     }
   }
-  return '#b98f34';
+  return '#2d6639';
 }

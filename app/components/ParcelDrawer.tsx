@@ -6,9 +6,14 @@ import { CATEGORIES, CATEGORY_LABELS } from '@/lib/types';
 import { elevationColor } from '@/app/lib/scale';
 
 export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLandStore> }) {
-  const { ranked, selectedId, setSelectedId, persona } = store;
+  const {
+    ranked, selectedId, setSelectedId, persona,
+    isComparing, toggleCompare, compareIds, setCompareOpen,
+  } = store;
   const parcel = ranked.find((p) => p.id === selectedId);
   if (!parcel) return null;
+
+  const inCompare = isComparing(parcel.id);
 
   const compat = compatibility(parcel.scores, persona);
   const items = explain(parcel.scores, persona);
@@ -71,6 +76,20 @@ export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLa
       <div className={`ls-valuation ${valuation.cls}`}>
         {valuation.label}
         <span className="gap">{gap >= 0 ? '+' : ''}{Math.round(gap * 100)}%</span>
+      </div>
+
+      <div className="ls-drawer-actions">
+        <button
+          className={`ls-btn${inCompare ? ' active' : ''}`}
+          onClick={() => toggleCompare(parcel.id)}
+        >
+          {inCompare ? '✓ In comparison' : '+ Add to compare'}
+        </button>
+        {compareIds.length >= 2 && (
+          <button className="ls-btn gold" onClick={() => setCompareOpen(true)}>
+            Compare {compareIds.length} →
+          </button>
+        )}
       </div>
 
       <div className="ls-sub">Amenity profile</div>

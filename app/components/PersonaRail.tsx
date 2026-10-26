@@ -9,6 +9,7 @@ export default function PersonaRail({ store }: { store: ReturnType<typeof useLan
   const {
     personas, persona, personaId, setPersonaId, budget, setBudget, maxPrice,
     landUse, setLandUse, visible, selectedId, setSelectedId,
+    isComparing, toggleCompare, compareIds, maxCompare,
   } = store;
 
   // The three categories this persona weights most heavily — its priorities.
@@ -87,28 +88,39 @@ export default function PersonaRail({ store }: { store: ReturnType<typeof useLan
       <section>
         <div className="ls-section-label">Top matches · {visible.length} parcels</div>
         <ol className="ls-board">
-          {visible.slice(0, 6).map((p, i) => (
-            <li key={p.id}>
-              <button
-                className="ls-board-row"
-                aria-pressed={p.id === selectedId}
-                style={p.id === selectedId ? { borderColor: 'var(--gold-line)' } : undefined}
-                onClick={() => setSelectedId(p.id)}
-              >
-                <span className="ls-rank" style={{ background: elevationColor(p.compat) }}>
-                  {i + 1}
-                </span>
-                <span>
-                  <span className="ls-board-id">{p.id}</span>
-                  <br />
-                  <span className="ls-board-use">{p.landUse}</span>
-                </span>
-                <span className="ls-board-score">
-                  {Math.round(p.compat)}<span>/100</span>
-                </span>
-              </button>
-            </li>
-          ))}
+          {visible.slice(0, 6).map((p, i) => {
+            const checked = isComparing(p.id);
+            return (
+              <li key={p.id} className="ls-board-item">
+                <input
+                  type="checkbox"
+                  className="ls-compare-check"
+                  checked={checked}
+                  disabled={!checked && compareIds.length >= maxCompare}
+                  onChange={() => toggleCompare(p.id)}
+                  aria-label={`Add ${p.id} to comparison`}
+                />
+                <button
+                  className="ls-board-row"
+                  aria-pressed={p.id === selectedId}
+                  style={p.id === selectedId ? { borderColor: 'var(--gold-line)' } : undefined}
+                  onClick={() => setSelectedId(p.id)}
+                >
+                  <span className="ls-rank" style={{ background: elevationColor(p.compat) }}>
+                    {i + 1}
+                  </span>
+                  <span>
+                    <span className="ls-board-id">{p.id}</span>
+                    <br />
+                    <span className="ls-board-use">{p.landUse}</span>
+                  </span>
+                  <span className="ls-board-score">
+                    {Math.round(p.compat)}<span>/100</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
           {visible.length === 0 && (
             <li className="ls-board-use" style={{ padding: '8px 2px' }}>
               No parcels fit these filters. Raise the price ceiling or widen the land use.

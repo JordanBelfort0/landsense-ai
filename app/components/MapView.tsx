@@ -48,7 +48,7 @@ export default function MapView({ store }: { store: ReturnType<typeof useLandSto
       </MapContainer>
 
       <div className="ls-legend">
-        <div className="ls-legend-title">Match elevation</div>
+        <div className="ls-legend-title">Match fit</div>
         <div className="ls-legend-ramp" />
         <div className="ls-legend-scale">
           <span>0 — poor fit</span>
