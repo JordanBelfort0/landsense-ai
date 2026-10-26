@@ -21,7 +21,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LandSense AI — Land decision intelligence for Bengaluru",
+  title: "LandMatch AI — Land decision intelligence for Bengaluru",
   description:
     "Every land parcel in Bengaluru, scored against real amenities and re-ranked live for who you are. Transparent, explainable, map-first.",
 };

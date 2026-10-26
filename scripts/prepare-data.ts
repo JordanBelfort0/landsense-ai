@@ -33,7 +33,7 @@ async function fetchOverpass(): Promise<any> {
         body: 'data=' + encodeURIComponent(query),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'LandSense/1.0 (+https://github.com/landmatch)',
+          'User-Agent': 'LandMatch/1.0 (+https://github.com/landmatch)',
         },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

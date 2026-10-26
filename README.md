@@ -1,4 +1,4 @@
-# LandSense AI
+# LandMatch AI
 
 Interactive land-intelligence prototype for Bengaluru. Synthetic parcels scored
 against real OpenStreetMap amenities, re-ranked live by user persona.
