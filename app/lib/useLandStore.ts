@@ -5,8 +5,14 @@ import { Parcel, Persona, CategoryScores, Category } from '@/lib/types';
 import { PERSONAS, getPersona } from '@/lib/personas';
 import { compatibility } from '@/lib/scoring/compatibility';
 import { adjustWeight } from '@/lib/scoring/weights';
+import { confidence } from '@/lib/scoring/confidence';
 
-const PARCELS = parcelsData as Parcel[];
+// public/data/parcels.json bakes `confidence` in at data-generation time
+// (scripts/prepare-data.ts). Recompute it here from each parcel's own
+// `scores` so the app always reflects the current confidence formula
+// without needing a full data regeneration (a live Overpass fetch) just
+// to pick up a scoring-logic change.
+const PARCELS = (parcelsData as Parcel[]).map((p) => ({ ...p, confidence: confidence(p.scores) }));
 const MAX_PRICE = Math.max(...PARCELS.map((p) => p.listedPrice));
 const MAX_COMPARE = 3;
 
