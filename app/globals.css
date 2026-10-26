@@ -647,6 +647,39 @@ a {
   color: var(--text-faint);
 }
 
+/* Counterfactual ("Why not this parcel") */
+.ls-counterfactual p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+}
+.ls-counterfactual p:last-child {
+  margin-bottom: 0;
+}
+.ls-cf-combo {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+.ls-cf-combo li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.ls-cf-combo li:last-child {
+  border-bottom: none;
+}
+.ls-cf-combo li span:last-child {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
 .ls-disclaimer {
   font-size: 11px;
   line-height: 1.5;

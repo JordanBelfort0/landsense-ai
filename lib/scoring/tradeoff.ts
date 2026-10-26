@@ -46,13 +46,13 @@ function leadersBy(
   return items.filter((p) => Math.abs(value(p) - best) < 1e-9).map((p) => p.id);
 }
 
-function joinList(xs: string[]): string {
+export function joinList(xs: string[]): string {
   if (xs.length <= 1) return xs.join('');
   if (xs.length === 2) return `${xs[0]} and ${xs[1]}`;
   return `${xs.slice(0, -1).join(', ')}, and ${xs[xs.length - 1]}`;
 }
 
-function plural(n: number, word: string): string {
+export function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? '' : 's'}`;
 }
 

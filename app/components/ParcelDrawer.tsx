@@ -2,12 +2,13 @@
 import { useLandStore } from '@/app/lib/useLandStore';
 import { explain } from '@/lib/scoring/explain';
 import { compatibility } from '@/lib/scoring/compatibility';
+import { counterfactual, describeCounterfactual } from '@/lib/scoring/counterfactual';
 import { CATEGORIES, CATEGORY_LABELS } from '@/lib/types';
 import { elevationColor } from '@/app/lib/scale';
 
 export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLandStore> }) {
   const {
-    ranked, selectedId, setSelectedId, persona,
+    ranked, visible, selectedId, setSelectedId, persona,
     isComparing, toggleCompare, compareIds, setCompareOpen,
   } = store;
   const parcel = ranked.find((p) => p.id === selectedId);
@@ -17,6 +18,13 @@ export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLa
 
   const compat = compatibility(parcel.scores, persona);
   const items = explain(parcel.scores, persona);
+
+  // "Why not this parcel" — compared against the best currently-filtered
+  // match, so the comparison respects whatever budget/land-use is active.
+  const topMatch = visible[0];
+  const isTopMatch = topMatch?.id === parcel.id;
+  const cf = topMatch && !isTopMatch ? counterfactual(parcel.scores, topMatch.scores, persona) : null;
+  const cfLines = cf ? describeCounterfactual(cf, persona) : [];
   const gap = (parcel.listedPrice - parcel.estimatedValue) / parcel.estimatedValue;
   const valuation =
     gap < -0.08
@@ -123,6 +131,27 @@ export default function ParcelDrawer({ store }: { store: ReturnType<typeof useLa
           );
         })}
       </ul>
+
+      {cf && (
+        <>
+          <div className="ls-sub" style={{ marginTop: 22 }}>
+            Why not this parcel · vs {topMatch.id}
+          </div>
+          <div className="ls-counterfactual">
+            {cfLines.map((line, i) => <p key={i}>{line}</p>)}
+            {cf.bestSingleLever == null && cf.combo.length > 0 && (
+              <ul className="ls-cf-combo">
+                {cf.combo.map((step) => (
+                  <li key={step.category}>
+                    <span>{step.label}</span>
+                    <span>{Math.round(step.currentScore)} → {Math.round(step.newScore)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
 
       <p className="ls-disclaimer">
         Estimated value is a model figure for guidance, not an official valuation.
